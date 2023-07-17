@@ -1,5 +1,5 @@
 import React from 'react'
-import { Route } from 'react-router-dom'
+import {Link, Route} from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
 import { LinkContainer } from 'react-router-bootstrap'
 import { Navbar, Nav, Container, NavDropdown } from 'react-bootstrap'
@@ -18,15 +18,34 @@ const Header = () => {
   }
 
   return (
+
     <header>
+      <div id="top">
+        <div id="top-content-wrapper" className="page-centered clearfix">
+          <Link to="/" id="logo"><img  src={logo}/></Link>
+          <div className="top-content">
+            <div className="top-label">Call Us Today: <a href={'tel:8449410499'}>8449410499</a> </div>
+            <div className="top-search">
+
+              <Route render={({ history }) => <SearchBox history={history} />} />
+            </div>
+            <div className="top-phone">
+
+              Email Us: office@zmequipment.com <br/> <a href={'https://www.bbbiz.org/us/mo/kansas-city/profile/construction-equipment/zahry-machinery-equipment-llc-0674-1000053096/'}>
+              BBB Rating & Accreditation
+            </a>
+            </div>
+          </div>
+        </div>
+
+
+      </div>
       <Navbar bg='dark' variant='dark' expand='lg' collapseOnSelect>
         <Container>
-          <LinkContainer to='/'>
-            <Navbar.Brand><img style={{width: '15%', position: 'absolute', left: '6%', top: '0%', background: 'rgba(255, 255, 255, 0.45)'}} src={logo}/></Navbar.Brand>
-          </LinkContainer>
+
           <Navbar.Toggle aria-controls='basic-navbar-nav' />
           <Navbar.Collapse id='basic-navbar-nav'>
-            <Route render={({ history }) => <SearchBox history={history} />} />
+
             <Nav className='ml-auto'>
               <LinkContainer to='/cart'>
                 <Nav.Link>

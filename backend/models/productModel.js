@@ -35,7 +35,7 @@ const productSchema = mongoose.Schema(
 
       chars: {
           type: Array,
-          required: false
+          required: true
       },
 
       offer: {

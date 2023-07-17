@@ -14,18 +14,25 @@ const SearchBox = ({ history }) => {
   }
 
   return (
-    <Form onSubmit={submitHandler} inline>
-      <Form.Control
-        type='text'
-        name='q'
-        onChange={(e) => setKeyword(e.target.value)}
-        placeholder='Search Products...'
-        className='mr-sm-2 ml-sm-5'
-      ></Form.Control>
-      <Button type='submit' variant='outline-success' className='p-2'>
-        Search
-      </Button>
-    </Form>
+    // <Form onSubmit={submitHandler} inline>
+    //   <Form.Control
+    //     type='text'
+    //     name='q'
+    //     onChange={(e) => setKeyword(e.target.value)}
+    //     placeholder='Search Products...'
+    //     className='mr-sm-2 ml-sm-5'
+    //   ></Form.Control>
+    //   <Button type='submit' variant='outline-success' className='p-2'>
+    //     Search
+    //   </Button>
+    // </Form>
+      <form className="search-form" onSubmit={submitHandler} >
+          <input type="hidden" name="cmd" value="search"/>
+              <div className="search-field">
+                  <input type="text" name="q" onChange={(e) => setKeyword(e.target.value)} placeholder="search"/>
+              </div>
+              <button type={'submit'} className="search-btn">Search</button>
+      </form>
   )
 }
 

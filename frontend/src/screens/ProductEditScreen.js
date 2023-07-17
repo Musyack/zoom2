@@ -8,12 +8,23 @@ import Loader from '../components/Loader'
 import FormContainer from '../components/FormContainer'
 import { listProductDetails, updateProduct } from '../actions/productActions'
 import { PRODUCT_UPDATE_RESET } from '../constants/productConstants'
+import {FormGroup, FormLabel, TableRow} from "@mui/material";
+import {SwiperSlide} from "swiper/react";
+import {Player} from "video-react";
+import DeleteIcon from '@mui/icons-material/Delete';
+import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableHead from "@mui/material/TableHead";
+import TableCell from "@mui/material/TableCell";
+import TableBody from "@mui/material/TableBody";
+import TableContainer from "@mui/material/TableContainer";
 
 const ProductEditScreen = ({ match, history }) => {
   const productId = match.params.id
 
+
   const [countInStock, setCountInStock] = useState(0)
-  const [chars, setChars] = useState([])
+  const [chars, setChars] = useState([{key: '', value: ''}])
   const [description, setDescription] = useState('')
   const [uploading, setUploading] = useState(false)
   const [key, setKey] = useState('')
@@ -64,6 +75,9 @@ const ProductEditScreen = ({ match, history }) => {
         setCategory(product.category)
         setCountInStock(product.countInStock)
         setDescription(product.description)
+        setImagesArr(product.images)
+        setChars(product.chars)
+        console.log(categoryList)
       }
     }
   }, [dispatch, history, productId, product, successUpdate])
@@ -98,6 +112,18 @@ const ProductEditScreen = ({ match, history }) => {
     setUploading(false)
 
     setImagesArr(copy)
+  }
+
+  const deleteImage = (i) => {
+    const copy = JSON.parse(JSON.stringify(imagesArr))
+    delete copy[i]
+    setImagesArr(copy)
+  }
+
+  const deleteChars = (i) => {
+    const copy = JSON.parse(JSON.stringify(chars))
+    delete copy[i]
+    setChars(copy)
   }
 
   const submitHandler = (e) => {
@@ -168,7 +194,86 @@ const ProductEditScreen = ({ match, history }) => {
 
               ></Form.File>
               {uploading && <Loader />}
+              <TableRow>
+                {imagesArr ? imagesArr.map((item, i) => {
+                  if (item){
+                    if ((item[item.length - 1] === '4') || (item[item.length - 1] === '3')){
+                      return (
+
+                          <Player>
+                            <source src={`/${item}`} />
+                            <DeleteIcon onClick={() => deleteImage(i)}/>
+                          </Player>
+
+                      )
+                    } else {
+                      return (
+
+                          <>
+                            <img style={{width: '300px'}} src={`/${item}`}/>
+                            <DeleteIcon onClick={() => deleteImage(i)}/>
+                          </>
+
+
+                      )
+                    }
+                  }
+                }) : <></>}
+              </TableRow>
             </Form.Group>
+            <FormGroup controlId='chars'>
+              <FormLabel>Характеристики</FormLabel>
+              <TableRow>
+                <Col>
+                  <Form.Control onChange={(e) => setKey(e.target.value)} value={key} type="text" placeholder="Ключ" />
+                </Col>
+                <Col>
+                  <Form.Control onChange={(e) => setValue(e.target.value)} value={value} type="text" placeholder="Значение" />
+                </Col>
+                <Col>
+                  <Button onClick={onChars} variant="primary" type="submit">
+                    Добавить
+
+                  </Button>
+                </Col>
+                <Col>
+                  <TableContainer component={Paper}>
+                    <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                      <TableHead>
+                        <TableRow>
+                          <TableCell>Ключ</TableCell>
+
+                          <TableCell align="left">Значение</TableCell>
+                          <TableCell align="left"></TableCell>
+                        </TableRow>
+                      </TableHead>
+                      <TableBody>
+                        {chars.map((char, i) => {
+                          if( char){
+                            return (
+                                <TableRow
+                                    key={char.key}
+                                    sx={{'&:last-child td, &:last-child th': {border: 0}}}
+                                >
+                                  <TableCell component="th" scope="row">
+                                    {char.key}
+                                  </TableCell>
+                                  <TableCell align="left">{char.value}</TableCell>
+                                  <TableCell align="left">
+                                    <DeleteIcon onClick={() => deleteChars(i)}/>
+                                  </TableCell>
+
+
+                                </TableRow>
+                            )
+                          }
+                        })}
+                      </TableBody>
+                    </Table>
+                  </TableContainer>
+                </Col>
+              </TableRow>
+            </FormGroup>
 
             <Form.Group controlId='brand'>
               <Form.Label>Brand</Form.Label>
@@ -201,12 +306,12 @@ const ProductEditScreen = ({ match, history }) => {
 
             <Form.Group controlId='description'>
               <Form.Label>Description</Form.Label>
-              <Form.Control
+              <textarea
                 type='text'
                 placeholder='Enter description'
                 value={description}
                 onChange={(e) => setDescription(e.target.value)}
-              ></Form.Control>
+              ></textarea>
             </Form.Group>
 
             <Button type='submit' variant='primary'>

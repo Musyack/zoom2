@@ -1,18 +1,33 @@
 import React, { useState, useEffect } from 'react'
 import { Link } from 'react-router-dom'
 import { useDispatch, useSelector } from 'react-redux'
-import { Row, Col, Image, ListGroup, Card, Button, Form, Carousel } from 'react-bootstrap'
+import {Row, Col, Image, ListGroup, Card, Button, Form, Carousel,} from 'react-bootstrap'
 import Rating from '../components/Rating'
 import Message from '../components/Message'
 import Loader from '../components/Loader'
 import Meta from '../components/Meta'
-import { Splide, SplideSlide, SplideTrack } from '@splidejs/react-splide';
+import {useCallback} from "react";
+import ImageViewer from "react-simple-image-viewer";
+import 'swiper/swiper-bundle.css';
+import { Player } from 'video-react';
+import "video-react/dist/video-react.css"; // import css
 
 import {
   listProductDetails,
   createProductReview,
 } from '../actions/productActions'
 import { PRODUCT_CREATE_REVIEW_RESET } from '../constants/productConstants'
+import {Navigation, Pagination, Scrollbar, A11y, EffectFade} from "swiper";
+import {Swiper} from "swiper/react";
+import {SwiperSlide} from "swiper/react";
+
+import Paper from "@mui/material/Paper";
+import Table from "@mui/material/Table";
+import TableHead from "@mui/material/TableHead";
+import TableRow from "@mui/material/TableRow";
+import TableCell from "@mui/material/TableCell";
+import TableBody from "@mui/material/TableBody";
+import TableContainer from "@mui/material/TableContainer";
 
 const ProductScreen = ({ history, match }) => {
   const [qty, setQty] = useState(1)
@@ -54,6 +69,25 @@ const ProductScreen = ({ history, match }) => {
   const addToCartHandler = () => {
     history.push(`/cart/${match.params.id}?qty=${qty}`)
   }
+  const [currentImage, setCurrentImage] = useState(0);
+  const [isViewerOpen, setIsViewerOpen] = useState(false);
+  const images = [
+    "https://mywowo.net/media/images/cache/dubai_img_worlds_of_adventure_01_presentazione_jpg_1200_630_cover_85.jpg",
+    "https://mywowo.net/media/images/cache/dubai_img_worlds_of_adventure_01_presentazione_jpg_1200_630_cover_85.jpg",
+    "https://mywowo.net/media/images/cache/dubai_img_worlds_of_adventure_01_presentazione_jpg_1200_630_cover_85.jpg",
+    "https://mywowo.net/media/images/cache/dubai_img_worlds_of_adventure_01_presentazione_jpg_1200_630_cover_85.jpg",
+    "https://media.w3.org/2010/05/sintel/trailer_hd.mp4"
+  ];
+
+  const openImageViewer = useCallback((index) => {
+    setCurrentImage(index);
+    setIsViewerOpen(true);
+  }, []);
+
+  const closeImageViewer = () => {
+    setCurrentImage(0);
+    setIsViewerOpen(false);
+  };
 
   const submitHandler = (e) => {
     e.preventDefault()
@@ -78,38 +112,74 @@ const ProductScreen = ({ history, match }) => {
         <>
           <Meta title={product.name} />
           <Row>
-            <Col md={6}>
-              <Carousel variant="dark" activeIndex={index} onSelect={handleSelect}>
-                {product.images ? product.images.map(item => {
-                  return (
-                      <Carousel.Item>
-                        <Image src={`../../${item}`} alt={product.name} fluid/>
-                      </Carousel.Item>
-                  )
-                }) : <Loader/>
-                }
+            <Col md={5}>
+              <Swiper
+                  modules={[Navigation, Pagination, Scrollbar, A11y, EffectFade]}
+                  direction={'horizontal'}
 
-              </Carousel>
+                  spaceBetween={0}
+                  slidesPerView={1}
+                  navigation
+                  pagination={{ clickable: true }}
+                  scrollbar={{ draggable: true }}
+                  onSwiper={(swiper) => console.log(swiper)}
+                  onSlideChange={() => console.log('slide change')}
+              >
+                {product.images ? product.images.map((item, index) => {
+
+                        if ((item[item.length - 1] === '4') || (item[item.length - 1] === '3')){
+                          return (
+                              <SwiperSlide>
+                                <Player>
+                                  <source src={`/${item}`} />
+                                </Player>
+                              </SwiperSlide>
+                          )
+                        } else {
+                          return (
+                              <SwiperSlide  onClick={() => openImageViewer(index)}>
+                                <img style={{width: '100%'}} src={`/${item}`}/>
+                              </SwiperSlide>
+                          )
+                        }
+
+
+
+
+                }) : <Loader/>}
+
+              </Swiper>
+              {isViewerOpen && (
+                  <ImageViewer
+                      src={images.map(item => {
+                        return item
+                      })}
+                      currentIndex={currentImage}
+                      onClose={closeImageViewer}
+                      disableScroll={false}
+                      backgroundStyle={{
+                        backgroundColor: "rgba(0,0,0,0.9)"
+                      }}
+                      closeOnClickOutside={true}
+                  />
+              )}
 
             </Col>
-            <Col md={3}>
+            <Col md={4}>
               <ListGroup variant='flush'>
                 <ListGroup.Item>
                   <h3>{product.name}</h3>
                 </ListGroup.Item>
-                <ListGroup.Item>
-                  <Rating
-                    value={product.rating}
-                    text={`${product.numReviews} reviews`}
-                  />
-                </ListGroup.Item>
+
                 <ListGroup.Item>Price: ${product.price}</ListGroup.Item>
                 <ListGroup.Item>
-                  Description: {product.description}
+                  <p style={{whiteSpace: 'pre-line'}}>
+                    Description: {product.description}
+                  </p>
                 </ListGroup.Item>
               </ListGroup>
             </Col>
-            <Col md={3}>
+            <Col md={3  }>
               <Card>
                 <ListGroup variant='flush'>
                   <ListGroup.Item>
@@ -169,69 +239,34 @@ const ProductScreen = ({ history, match }) => {
           </Row>
           <Row>
             <Col md={6}>
-              <h2>Reviews</h2>
-              {product.reviews.length === 0 && <Message>No Reviews</Message>}
-              <ListGroup variant='flush'>
-                {product.reviews.map((review) => (
-                  <ListGroup.Item key={review._id}>
-                    <strong>{review.name}</strong>
-                    <Rating value={review.rating} />
-                    <p>{review.createdAt.substring(0, 10)}</p>
-                    <p>{review.comment}</p>
-                  </ListGroup.Item>
-                ))}
-                <ListGroup.Item>
-                  <h2>Write a Customer Review</h2>
-                  {successProductReview && (
-                    <Message variant='success'>
-                      Review submitted successfully
-                    </Message>
-                  )}
-                  {loadingProductReview && <Loader />}
-                  {errorProductReview && (
-                    <Message variant='danger'>{errorProductReview}</Message>
-                  )}
-                  {userInfo ? (
-                    <Form onSubmit={submitHandler}>
-                      <Form.Group controlId='rating'>
-                        <Form.Label>Rating</Form.Label>
-                        <Form.Control
-                          as='select'
-                          value={rating}
-                          onChange={(e) => setRating(e.target.value)}
+              <h2>Characteristics</h2>
+              <TableContainer component={Paper}>
+                <Table sx={{ minWidth: 650 }} aria-label="simple table">
+                  <TableHead>
+                    <TableRow>
+                      <TableCell></TableCell>
+
+                      <TableCell align="left"></TableCell>
+                    </TableRow>
+                  </TableHead>
+                  <TableBody>
+                    { product.chars?.length > 0 ? product.chars.map((item, i) => (
+                        <TableRow
+                            key={item.key}
+                            sx={{ '&:last-child td, &:last-child th': { border: 0 } }}
                         >
-                          <option value=''>Select...</option>
-                          <option value='1'>1 - Poor</option>
-                          <option value='2'>2 - Fair</option>
-                          <option value='3'>3 - Good</option>
-                          <option value='4'>4 - Very Good</option>
-                          <option value='5'>5 - Excellent</option>
-                        </Form.Control>
-                      </Form.Group>
-                      <Form.Group controlId='comment'>
-                        <Form.Label>Comment</Form.Label>
-                        <Form.Control
-                          as='textarea'
-                          row='3'
-                          value={comment}
-                          onChange={(e) => setComment(e.target.value)}
-                        ></Form.Control>
-                      </Form.Group>
-                      <Button
-                        disabled={loadingProductReview}
-                        type='submit'
-                        variant='primary'
-                      >
-                        Submit
-                      </Button>
-                    </Form>
-                  ) : (
-                    <Message>
-                      Please <Link to='/login'>sign in</Link> to write a review{' '}
-                    </Message>
-                  )}
-                </ListGroup.Item>
-              </ListGroup>
+                          <TableCell component="th" scope="row">
+                            {item.key}
+                          </TableCell>
+                          <TableCell align="left">{item.value}</TableCell>
+
+
+
+                        </TableRow>
+                    )): <Loader/>}
+                  </TableBody>
+                </Table>
+              </TableContainer>
             </Col>
           </Row>
         </>

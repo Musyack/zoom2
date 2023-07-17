@@ -1,6 +1,7 @@
 import asyncHandler from 'express-async-handler'
 import generateToken from '../utils/generateToken.js'
 import User from '../models/userModel.js'
+import {sendActivationMail} from "../services/mailService.js";
 
 // @desc    Auth user & get token
 // @route   POST /api/users/login
@@ -15,7 +16,6 @@ const authUser = asyncHandler(async (req, res) => {
       _id: user._id,
       name: user.name,
       email: user.email,
-
       isAdmin: user.isAdmin,
       token: generateToken(user._id),
     })
@@ -23,6 +23,15 @@ const authUser = asyncHandler(async (req, res) => {
     res.status(401)
     throw new Error('Invalid email or password')
   }
+})
+
+const activateUser = asyncHandler(async (req, res) => {
+  const {id} = req.params
+  const user = await User.findById(id)
+  user.isActivated = true
+  const updatedUser = user.save()
+  res.status(201).json(updatedUser)
+
 })
 
 // @desc    Register a new user
@@ -42,8 +51,10 @@ const registerUser = asyncHandler(async (req, res) => {
     name,
     email,
     password,
-    phone
+    phone,
+    isActivated: false
   })
+  await sendActivationMail(email, user._id)
 
   if (user) {
     res.status(201).json({
@@ -52,6 +63,7 @@ const registerUser = asyncHandler(async (req, res) => {
       email: user.email,
       phone: user.phone,
       isAdmin: user.isAdmin,
+      isActivated: user.isActivated,
 
       token: generateToken(user._id),
     })
@@ -74,6 +86,7 @@ const getUserProfile = asyncHandler(async (req, res) => {
       email: user.email,
       phone: user.phone,
       isAdmin: user.isAdmin,
+      isActivated: user.isActivated
     })
   } else {
     res.status(404)
@@ -105,6 +118,7 @@ const updateUserProfile = asyncHandler(async (req, res) => {
       email: updatedUser.email,
       phone: updatedUser.phone,
       isAdmin: updatedUser.isAdmin,
+      isActivated: user.isActivated,
       token: generateToken(updatedUser._id),
     })
   } else {
@@ -168,6 +182,7 @@ const updateUser = asyncHandler(async (req, res) => {
       name: updatedUser.name,
       email: updatedUser.email,
       isAdmin: updatedUser.isAdmin,
+      isActivated: user.isActivated
     })
   } else {
     res.status(404)
@@ -184,4 +199,5 @@ export {
   deleteUser,
   getUserById,
   updateUser,
+    activateUser
 }
